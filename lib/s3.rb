@@ -27,8 +27,10 @@ class S3
     @secret_access_key = URI.unescape(url.password)
     @host              = url.host
     @bucket            = url.path[1..-1]
+  end
 
-    @connection = Net::HTTP::Persistent.new("aws-s3/#{bucket}")
+  def connection
+    @connection ||= Net::HTTP::Persistent.new("aws-s3/#{bucket}")
   end
 
   # Lower level object get which just yields the successful S3 response to the
