@@ -26,7 +26,7 @@ class S3
     @access_key_id     = url.user
     @secret_access_key = URI.unescape(url.password)
     @host              = url.host
-    @bucket            = url.path
+    @bucket            = url.path[1..-1]
 
     @connection = Net::HTTP::Persistent.new("aws-s3/#{bucket}")
   end
@@ -56,7 +56,6 @@ class S3
   # Upload the file with the given filename to the given destination in your
   # S3 bucket. If no destination is given then uploads it with the same
   # filename to the root of your bucket.
-  # FIXME: for some reason this always fails signing...
   def upload(name, destination=nil)
     put File.open(name, "rb"), destination || File.basename(name)
   end
@@ -67,8 +66,9 @@ class S3
     
     req.body_stream = io
     req.add_field "Content-Length", io.size
-    
-    request(URI::HTTP.build(host: "#{bucket.sub(/^\//, "")}.#{host}", path: "/#{name}"), req)
+    req.add_field "Content-Type", "application/x-www-form-urlencoded"
+
+    request(URI::HTTP.build(host: host, path: "/#{bucket}/#{name}"), req)
   end
   
   # List bucket contents
@@ -79,7 +79,7 @@ class S3
   private
   
   def uri(path, options={})
-    URI::HTTP.build(options.merge(host: host, path: "#{bucket}/#{CGI.escape(path.sub(/^\//, ""))}"))
+    URI::HTTP.build(options.merge(host: host, path: "/#{bucket}/#{CGI.escape(path.sub(/^\//, ""))}"))
   end
 
   # Makes a request to the S3 API and returns the Nokogiri-parsed XML
@@ -112,15 +112,11 @@ class S3
       OpenSSL::HMAC.digest(
         OpenSSL::Digest::Digest.new("sha1"),
         secret_access_key,
-        "#{request.class::METHOD}\n#{content_md5}\n#{content_type}\n#{request.fetch("Date")}\n#{amz_headers}#{uri.path}"
+        "#{request.class::METHOD}\n\n#{request["Content-Type"]}\n#{request.fetch("Date")}\n#{uri.path}"
       )
     ).chomp
   end
-  
-  def amz_headers;end;
-  def content_md5;end;
-  def content_type;end;
-  
+
   # Base class of all S3 Errors
   class Error < ::RuntimeError
     # Factory for various Error types based on the given XML. We get a

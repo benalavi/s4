@@ -1,10 +1,13 @@
-require "rubygems"
-require "ruby-debug"
 require "cutest"
 require "timecop"
 require "fileutils"
 
-require File.join(File.dirname(__FILE__), "/../lib/s3")
+begin
+  require "ruby-debug"
+rescue LoadError
+end
+
+require File.expand_path("../lib/s3", File.dirname(__FILE__))
 
 def fixture(filename="")
   File.join(File.dirname(__FILE__), "fixtures", filename)
@@ -17,7 +20,7 @@ end
 # S3 errors are defined dynamically -- have to make them explicit for testing
 class S3::NoSuchKey < S3::Error;end;
 
-Bucket = URI(ENV["S3_URL"]).path
+Bucket = URI(ENV["S3_URL"]).path[1..-1]
 
 scope do
   setup do
@@ -73,12 +76,14 @@ scope do
 
     @s3.get("foo bar+baz.txt") { |response| assert_equal "abc123", response.body }
   end
-  
-  # test "should upload foo.txt" do
-  #   s3 = S3.new
-  #   # assert_raise(S3::NoSuchKey) { s3.download("foo.txt", output("foo.txt")) }
-  #   s3.upload(fixture("foo.txt"))
-  #   
-  #   s3.get("foo.txt") { |response| assert_equal "abc123", response.body }
-  # end
+
+  test "should upload foo.txt" do
+    `s3cmd del 's3://#{Bucket}/foo.txt'`
+
+    s3 = S3.new
+
+    s3.upload(fixture("foo.txt"))
+
+    s3.get("foo.txt") { |response| assert_equal "abc123", response.body }
+  end
 end
