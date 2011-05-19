@@ -24,7 +24,7 @@ class S3
     end
     
     @access_key_id     = url.user
-    @secret_access_key = url.password
+    @secret_access_key = URI.unescape(url.password)
     @host              = url.host
     @bucket            = url.path
 
