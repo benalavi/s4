@@ -105,7 +105,7 @@ class S3
           end
 
         else
-          raise Error.from_xml(REXML::Document.new(response.body).elements["//Error"])
+          raise Error.from_xml(response.body)
 
       end
     end
@@ -132,27 +132,11 @@ class S3
 
   # Base class of all S3 Errors
   class Error < ::RuntimeError
-    # Factory for various Error types based on the given XML. We get a
-    # uniform error response back from AWS, so rather than redefine all of
-    # their error types, can just dynamically generate them when they occur
-    # and define any special cases we want.
-    #
-    # Dynamically generates the exception class based on the given "Code"
-    # value in the XML (unless it's been previously defined).
-    #
-    # i.e.
-    #
-    # Error.from_xml <<-ERROR
-    # <Error>
-    #   <Code>FooError</Code>
-    #   <Message>Foo!</Message>
-    # </Error>
-    # ERROR #=> returns FooError.new("Foo!")
-    #
     def self.from_xml(xml)
-      code = xml.elements["Code"].text
-      S3.const_set(code, Class.new(Error)) unless S3.const_defined?(code)
-      S3.const_get(code).new(xml.elements["Message"].text)
+      doc = REXML::Document.new(xml).elements["//Error"]
+      code = doc.elements["Code"].text
+      message = doc.elements["Message"].text
+      new("#{code}: #{message}")
     end
   end
 end
