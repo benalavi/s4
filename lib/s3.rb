@@ -43,8 +43,8 @@ class S3
 
   # Download the file with the given filename to the given destination.
   def download(name, destination=nil)
-    File.open(destination || File.join(Dir.pwd, File.basename(name)), "wb") do |io|
-      get name do |response|
+    get(name) do |response|
+      File.open(destination || File.join(Dir.pwd, File.basename(name)), "wb") do |io|
         response.read_body do |chunk|
           io.write(chunk)
         end
@@ -88,17 +88,28 @@ class S3
 
   # Makes a request to the S3 API and returns the Nokogiri-parsed XML
   # response.
-  #
-  # TODO: Possibly use SAX parsing for large request bodies (?)
-  def request(uri, request=nil, &block)
+
+  def request(uri, request = nil)
+    # TODO: Possibly use SAX parsing for large request bodies (?)
+
     request ||= Net::HTTP::Get.new(uri.request_uri)
 
     connection.request(uri, sign(uri, request)) do |response|
-      raise Error.from_xml(Nokogiri::XML.parse(response.body).at("Error")) unless response.is_a?(Net::HTTPSuccess)
+      case response
+        when Net::HTTPNotFound
+          return nil
 
-      return response.body unless block_given?
+        when Net::HTTPSuccess
+          if block_given?
+            yield(response)
+          else
+            return response.body
+          end
 
-      block.call(response)
+        else
+          raise Error.from_xml(Nokogiri::XML.parse(response.body).at("Error"))
+
+      end
     end
   end
 

@@ -17,9 +17,6 @@ def output(filename="")
   File.join(File.dirname(__FILE__), "output", filename)
 end
 
-# S3 errors are defined dynamically -- have to make them explicit for testing
-class S3::NoSuchKey < S3::Error;end;
-
 Bucket = URI(ENV["S3_URL"]).path[1..-1]
 
 scope do
@@ -36,6 +33,13 @@ scope do
     assert_equal "abc123", File.read(output("foo.txt"))
   end
 
+  test "should not download non-existent files" do
+    `s3cmd del 's3://#{Bucket}/foo.txt'`
+    @s3.download("foo.txt", output("foo.txt"))
+
+    assert !File.exists?(output("foo.txt"))
+  end
+
   test "should yield raw response from get of foo.txt" do
     `s3cmd put #{fixture("foo.txt")} s3://#{Bucket}/foo.txt`
 
@@ -49,7 +53,7 @@ scope do
     @s3.get("foo.txt") { |response| assert_equal "abc123", response.body }
     @s3.delete("foo.txt")
 
-    assert_raise(S3::NoSuchKey) { @s3.download("foo.txt", output("foo.txt")) }
+    assert_equal nil, @s3.get("foo.txt")
   end
 
   test "should return list of items in bucket" do
