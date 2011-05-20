@@ -4,7 +4,9 @@ require "base64"
 require "time"
 
 # Simpler AWS S3 library
-class S3
+class S4
+  VERSION = "0.0.1"
+
   # sub-resource names which may appear in the query string and also must be
   # signed against.
   SubResources = %w( acl location logging notification partNumber policy requestPayment torrent uploadId uploads versionId versioning versions website )
