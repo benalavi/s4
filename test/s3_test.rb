@@ -97,4 +97,12 @@ scope do
 
     assert_raise(URI::InvalidURIError) { S3.new("s3://foo:bar/baz") }
   end
+
+  test "raises on S3 errors" do
+    s3 = S3.new(ENV["S3_URL"].sub(/.@/, "@")) # Break the password
+
+    assert_raise(S3::Error) do
+      s3.upload(fixture("foo.txt"))
+    end
+  end
 end

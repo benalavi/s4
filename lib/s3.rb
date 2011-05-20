@@ -1,5 +1,5 @@
 require "net/http/persistent"
-require "nokogiri"
+require "rexml/document"
 require "base64"
 require "time"
 
@@ -76,8 +76,8 @@ class S3
   end
 
   # List bucket contents
-  def list(prefix="")
-    Nokogiri::XML.parse(request(uri("", query: "prefix=#{prefix}"))).search("Key").collect(&:text)
+  def list(prefix = "")
+    REXML::Document.new(request(uri("", query: "prefix=#{prefix}"))).elements.collect("//Key", &:text)
   end
 
   private
@@ -86,9 +86,7 @@ class S3
     URI::HTTP.build(options.merge(host: host, path: "/#{bucket}/#{CGI.escape(path.sub(/^\//, ""))}"))
   end
 
-  # Makes a request to the S3 API and returns the Nokogiri-parsed XML
-  # response.
-
+  # Makes a request to the S3 API.
   def request(uri, request = nil)
     # TODO: Possibly use SAX parsing for large request bodies (?)
 
@@ -107,7 +105,7 @@ class S3
           end
 
         else
-          raise Error.from_xml(Nokogiri::XML.parse(response.body).at("Error"))
+          raise Error.from_xml(REXML::Document.new(response.body).elements["//Error"])
 
       end
     end
@@ -152,8 +150,9 @@ class S3
     # ERROR #=> returns FooError.new("Foo!")
     #
     def self.from_xml(xml)
-      S3.const_set(xml.at("Code").text, Class.new(Error)) unless S3.const_defined?(xml.at("Code").text)
-      S3.const_get(xml.at("Code").text).new(xml.at("Message").text)
+      code = xml.elements["Code"].text
+      S3.const_set(code, Class.new(Error)) unless S3.const_defined?(code)
+      S3.const_get(code).new(xml.elements["Message"].text)
     end
   end
 end
