@@ -86,4 +86,11 @@ scope do
 
     s3.get("foo.txt") { |response| assert_equal "abc123", response.body }
   end
+
+  test "barks when no URL is provided" do
+    assert_raise(ArgumentError) { S3.new("") }
+    assert_raise(ArgumentError) { S3.new(nil) }
+
+    assert_raise(URI::InvalidURIError) { S3.new("s3://foo:bar/baz") }
+  end
 end

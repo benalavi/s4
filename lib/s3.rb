@@ -16,15 +16,17 @@ class S3
   attr_reader :connection, :access_key_id, :secret_access_key, :bucket, :host
 
   def initialize(s3_url = ENV["S3_URL"])
+    raise ArgumentError, "No S3 URL provided. You can set ENV['S3_URL'], too." if s3_url.nil? || s3_url.empty?
+
     begin
       url = URI(s3_url)
-    rescue URI::InvalidURIError
-      raise ArgumentError.new("No s3_url provided, and none found on ENV[\"S3_URL\"] (i.e. s3://access_key_id:secret_access_key@s3.amazonaws.com/bucket)") if !s3_url || s3_url.blank?
-      raise ArgumentError.new("Invalid s3_url provided. Format is: s3://access_key_id:secret_access_key@s3.amazonaws.com/bucket")
+    rescue URI::InvalidURIError => e
+      e.message << " The format is s3://access_key_id:secret_access_key@s3.amazonaws.com/bucket"
+      raise e
     end
 
     @access_key_id     = url.user
-    @secret_access_key = URI.unescape(url.password)
+    @secret_access_key = URI.unescape(url.password || "")
     @host              = url.host
     @bucket            = url.path[1..-1]
   end
