@@ -1,13 +1,31 @@
-S3
+S4
 ==
 
-Simple S3 library.
+A Simpler API for Amazon Web Services S3.
+
+It does not implement the full S3 API, nor is that the intention. It just does
+the basics (managing files in a bucket) in a very simple way with a very small
+code footprint.
+
+Usage
+-----
+
+    $assets = S4.new("s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/assets.mysite.com")
+
+    $assets.upload("puppy.jpg", "animals/puppy.jpg")
+    $assets.upload("penguin.jpg", "animals/penguin.jpg")
+    
+    $assets.list("animals/") #=> [ "animals/puppy.jpg", "animals/penguin.jpg" ]
+    
+    $assets.download("animals/penguin.jpg", "penguin.jpg")
+    
+    $assets.delete("animals/penguin.jpg")
 
 Acknowledgements
 ----------------
 
-Michel Martens (soveran)
-Chris Schneider (cschneid)
+Michel Martens & Chris Schneider for input on the original design + see
+committers for more.
 
 License
 -------
