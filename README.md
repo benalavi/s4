@@ -21,6 +21,17 @@ Usage
     
     $assets.delete("animals/penguin.jpg")
 
+Low-level access
+    
+    $assets.get("animals/gigantic_penguin_movie.mp4") do |response|
+      File.open("gigantic_penguin_movie.mp4", "wb") do |io|
+        response.read_body do |chunk|
+          io.write(chunk)
+          puts "."
+        end
+      end
+    end    
+
 Acknowledgements
 ----------------
 
