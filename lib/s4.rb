@@ -18,12 +18,31 @@ class S4
   attr_reader :connection, :access_key_id, :secret_access_key, :bucket, :host
   
   class << self
+    # Connect to an S3 bucket.
+    # 
+    # Pass your S3 connection parameters as URL, or read from ENV["S3_URL"] if
+    # none is passed.
+    # 
+    # S3_URL format is s3://<access key id>:<secret access key>@s3.amazonaws.com/<bucket>
+    # 
+    # i.e.
+    #   bucket = S4.connect #=> Connects to ENV["S3_URL"]
+    #   bucket = S4.connect("s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/bucket")
     def connect(s3_url=ENV["S3_URL"])
       new(s3_url).tap do |s4|
         s4.connect
       end
     end
     
+    # Create an S3 bucket.
+    # 
+    # See #connect for S3_URL parameters.
+    # 
+    # Will create the bucket on S3 and connect to it, or just connect if the
+    # bucket already exists and is owned by you.
+    # 
+    # i.e.
+    #   bucket = S4.create
     def create(s3_url=ENV["S3_URL"])
       new(s3_url).tap do |s4|
         s4.create
@@ -31,6 +50,7 @@ class S4
     end
   end
   
+  # Initialize a new S3 bucket connection.
   def initialize(s3_url=ENV["S3_URL"])
     raise ArgumentError, "No S3 URL provided. You can set ENV['S3_URL'], too." if s3_url.nil? || s3_url.empty?
 
@@ -46,15 +66,16 @@ class S4
     @host = url.host
     @bucket = url.path[1..-1]
   end
-
-  def connection
-    @connection ||= Net::HTTP::Persistent.new("aws-s3/#{bucket}")
-  end
-    
+  
+  # Connect to the S3 bucket.
+  # 
+  # Since S3 doesn't really require a persistent connection this really just
+  # makes sure that it *can* connect (i.e. the bucket exists and you own it).
   def connect
     raise NoSuchBucket.new(bucket) if request(uri("/", query: "location")).nil?
   end
   
+  # Create the S3 bucket.
   def create
     uri = URI::HTTP.build(host: host, path: "/#{bucket}")
     request uri, Net::HTTP::Put.new(uri.request_uri)
@@ -69,6 +90,9 @@ class S4
   end
 
   # Download the file with the given filename to the given destination.
+  # 
+  # i.e.
+  #   bucket.download("images/palm_trees.jpg", "./palm_trees.jpg")
   def download(name, destination=nil)
     get(name) do |response|
       File.open(destination || File.join(Dir.pwd, File.basename(name)), "wb") do |io|
@@ -84,13 +108,18 @@ class S4
     request(uri = uri(name), Net::HTTP::Delete.new(uri.request_uri))
   end
 
-  # Upload the file with the given filename to the given destination in your
-  # S3 bucket. If no destination is given then uploads it with the same
-  # filename to the root of your bucket.
+  # Upload the file with the given filename to the given destination in your S3
+  # bucket.
+  # 
+  # If no destination is given then uploads it with the same filename to the
+  # root of your bucket.
+  # 
+  # i.e.
+  #   bucket.upload("./images/1996_animated_explosion.gif", "website_background.gif")
   def upload(name, destination=nil)
     put File.open(name, "rb"), destination || File.basename(name)
   end
-
+  
   def put(io, name)
     uri = uri(name)
     req = Net::HTTP::Put.new(uri.request_uri)
@@ -102,13 +131,22 @@ class S4
     request(URI::HTTP.build(host: host, path: "/#{bucket}/#{name}"), req)
   end
 
-  # List bucket contents
+  # List bucket contents.
+  # 
+  # Optionally pass a prefix to list from (useful for paths).
+  # 
+  # i.e.
+  #   bucket.list("images/") #=> [ "birds.jpg", "bees.jpg" ]
   def list(prefix = "")
     REXML::Document.new(request(uri("", query: "prefix=#{prefix}"))).elements.collect("//Key", &:text)
   end
-
+  
   private
-
+  
+  def connection
+    @connection ||= Net::HTTP::Persistent.new("aws-s3/#{bucket}")
+  end
+  
   def uri(path, options={})
     URI::HTTP.build(options.merge(host: host, path: "/#{bucket}/#{URI.escape(path.sub(/^\//, ""))}"))
   end
@@ -152,6 +190,8 @@ class S4
     ).chomp
   end
   
+  # Returns the given query string consisting only of query parameters which
+  # need to be signed against, or nil if there are none in the query string.
   def signed_params(query)
     signed = query.
       split("&").

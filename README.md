@@ -10,16 +10,15 @@ code footprint.
 Usage
 -----
 
-    $assets = S4.new("s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/assets.mysite.com")
-
+    $assets = S4.connect("s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/assets.mysite.com")
     $assets.upload("puppy.jpg", "animals/puppy.jpg")
     $assets.upload("penguin.jpg", "animals/penguin.jpg")
-    
     $assets.list("animals/") #=> [ "animals/puppy.jpg", "animals/penguin.jpg" ]
-    
     $assets.download("animals/penguin.jpg", "penguin.jpg")
-    
     $assets.delete("animals/penguin.jpg")
+    $assets.list("animals/") #=> [ "animals/puppy.jpg" ]
+    $assets.upload("ufo.jpg")
+    $assets.list #=> [ "ufo.jpg", "animals/puppy.jpg" ]
 
 Low-level access
     
@@ -30,7 +29,11 @@ Low-level access
           puts "."
         end
       end
-    end    
+    end
+
+Create a bucket (returns the bucket if it already exists and is accessible)
+
+    $musics = S4.create("s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/musics.mysite.com")
 
 Acknowledgements
 ----------------
