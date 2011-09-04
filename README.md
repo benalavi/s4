@@ -10,43 +10,43 @@ the basics (managing files in a bucket) in a very simple way with a
 Usage
 -----
 
-    $assets = S4.connect("s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/assets.mysite.com")
+    $assets = S4.connect url: "s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/assets.mysite.com"
     
-    $assets.upload("puppy.jpg", "animals/puppy.jpg")
-    $assets.upload("penguin.jpg", "animals/penguin.jpg")
-    $assets.list("animals/") #=> [ "animals/puppy.jpg", "animals/penguin.jpg" ]
+    $assets.upload "puppy.jpg", "animals/puppy.jpg"
+    $assets.upload "penguin.jpg", "animals/penguin.jpg"
+    $assets.list "animals/" #=> [ "animals/puppy.jpg", "animals/penguin.jpg" ]
     
-    $assets.download("animals/penguin.jpg", "penguin.jpg")
+    $assets.download "animals/penguin.jpg", "penguin.jpg"
     
-    $assets.delete("animals/penguin.jpg")
-    $assets.list("animals/") #=> [ "animals/puppy.jpg" ]
+    $assets.delete "animals/penguin.jpg"
+    $assets.list "animals/" #=> [ "animals/puppy.jpg" ]
     
-    $assets.upload("ufo.jpg")
+    $assets.upload "ufo.jpg"
     $assets.list #=> [ "ufo.jpg", "animals/puppy.jpg" ]
 
 Low-level access:
     
-    $assets.get("animals/gigantic_penguin_movie.mp4") do |response|
-      File.open("gigantic_penguin_movie.mp4", "wb") do |io|
+    $assets.get "animals/gigantic_penguin_movie.mp4" do |response|
+      File.open "gigantic_penguin_movie.mp4", "wb" do |io|
         response.read_body do |chunk|
-          io.write(chunk)
+          io.write chunk
           puts "."
         end
       end
     end
     
-    $assets.put(StringIO.new("My Novel -- By Ben Alavi...", "r"), "novel.txt", "text/plain")
+    $assets.put StringIO.new("My Novel -- By Ben Alavi...", "r"), "novel.txt", "text/plain"
 
 Create a bucket (returns the bucket if it already exists and is accessible):
 
-    $musics = S4.create("s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/musics.mysite.com")
+    $musics = S4.create url: "s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/musics.mysite.com"
     
 Make a bucket into a static website:
 
-    $site = S4.connect("s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/website.mysite.com")
+    $site = S4.connect url: "s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/website.mysite.com"
     $site.website!
-    $site.put(StringIO.new("<!DOCTYPE html><html><head><title>My Website</title></head><body><h1><blink><font color="yellow">HELLO! WELCOME TO MY WEBSITE</font></blink></h1></body></html>", "r"), "index.html")
-    Net::HTTP.get("http://#{$site.website}/") #=> ...HELLO! WELCOME TO MY WEBSITE...
+    $site.put StringIO.new("<!DOCTYPE html><html><head><title>My Website</title></head><body><h1><blink><font color="yellow">HELLO! WELCOME TO MY WEBSITE</font></blink></h1></body></html>", "r"), "index.html", "text/html"
+    Net::HTTP.get "http://#{$site.website}/" #=> ...HELLO! WELCOME TO MY WEBSITE...
 
 Plus a handful of other miscellaneous things...
 
