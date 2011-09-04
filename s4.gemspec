@@ -10,15 +10,14 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/benalavi/s4"
 
   s.files = Dir[
-    "LICENSE",
-    "README.markdown",
-    "Rakefile",
+    "README.md",
+    "rakefile",
+    "s4.gemspec",
     "lib/**/*.rb",
-    "*.gemspec",
     "test/**/*.rb"
   ]
 
-  s.add_dependency "net-http-persistent", "~> 1.7"
+  s.add_dependency "net-http-persistent", ">= 1.7"
 
   s.add_development_dependency "cutest"
   s.add_development_dependency "timecop", "~> 0.3"

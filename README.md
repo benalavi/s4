@@ -4,23 +4,27 @@ S4
 A Simpler API for Amazon Web Services S3.
 
 It does not implement the full S3 API, nor is that the intention. It just does
-the basics (managing files in a bucket) in a very simple way with a very small
-code footprint.
+the basics (managing files in a bucket) in a very simple way with a
+<del>very</del> small code footprint.
 
 Usage
 -----
 
     $assets = S4.connect("s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/assets.mysite.com")
+    
     $assets.upload("puppy.jpg", "animals/puppy.jpg")
     $assets.upload("penguin.jpg", "animals/penguin.jpg")
     $assets.list("animals/") #=> [ "animals/puppy.jpg", "animals/penguin.jpg" ]
+    
     $assets.download("animals/penguin.jpg", "penguin.jpg")
+    
     $assets.delete("animals/penguin.jpg")
     $assets.list("animals/") #=> [ "animals/puppy.jpg" ]
+    
     $assets.upload("ufo.jpg")
     $assets.list #=> [ "ufo.jpg", "animals/puppy.jpg" ]
 
-Low-level access
+Low-level access:
     
     $assets.get("animals/gigantic_penguin_movie.mp4") do |response|
       File.open("gigantic_penguin_movie.mp4", "wb") do |io|
@@ -30,16 +34,29 @@ Low-level access
         end
       end
     end
+    
+    $assets.put(StringIO.new("My Novel -- By Ben Alavi...", "r"), "novel.txt", "text/plain")
 
-Create a bucket (returns the bucket if it already exists and is accessible)
+Create a bucket (returns the bucket if it already exists and is accessible):
 
     $musics = S4.create("s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/musics.mysite.com")
+    
+Make a bucket into a static website:
+
+    $site = S4.connect("s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/website.mysite.com")
+    $site.website!
+    $site.put(StringIO.new("<!DOCTYPE html><html><head><title>My Website</title></head><body><h1><blink><font color="yellow">HELLO! WELCOME TO MY WEBSITE</font></blink></h1></body></html>", "r"), "index.html")
+    Net::HTTP.get("http://#{$site.website}/") #=> ...HELLO! WELCOME TO MY WEBSITE...
+
+Plus a handful of other miscellaneous things...
 
 Acknowledgements
 ----------------
 
-Michel Martens & Chris Schneider for input on the original design + see
-committers for more.
+* Michel Martens
+* Chris Schneider
+* Damian Janowski
+* Cyril David
 
 License
 -------
