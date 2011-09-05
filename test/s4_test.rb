@@ -175,8 +175,13 @@ class S4Test < Test::Unit::TestCase
     end
     
     should "use given content_type" do
-      @s4.put(StringIO.new("abcdef", "r"), "bar.txt", "text/foobar")
+      @s4.put StringIO.new("abcdef", "r"), "bar.txt", "text/foobar"
       assert_equal "text/foobar", open("http://s3.amazonaws.com/#{TestBucket}/bar.txt").content_type
+    end
+    
+    should "upload to a path" do
+      @s4.put StringIO.new("zoinks!", "r"), "foo/bar.txt", "text/plain"
+      assert_equal "zoinks!", open("http://s3.amazonaws.com/#{TestBucket}/foo/bar.txt").read
     end
   end
   
