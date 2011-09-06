@@ -24,6 +24,19 @@ Usage
     $assets.upload "ufo.jpg"
     $assets.list #=> [ "ufo.jpg", "animals/puppy.jpg" ]
 
+Without a URL given, S4 will attempt to read one from ENV["S3_URL"]:
+
+    $ export S3_URL="s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/assets.mysite.com"
+    ...
+    $assets = S4.connect
+    
+Handy snippet for multiple buckets w/ the same account:
+
+    $ export S3_URL="s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/%s"
+    ...
+    $assets = S4.connect url: ENV["S3_URL"] % "assets"
+    $videos = S4.connect url: ENV["S3_URL"] % "videos"  
+
 Low-level access:
     
     $assets.get "animals/gigantic_penguin_movie.mp4" do |response|
@@ -48,7 +61,7 @@ Make a bucket into a static website:
     $site.put StringIO.new("<!DOCTYPE html><html><head><title>My Website</title></head><body><h1><blink><font color="yellow">HELLO! WELCOME TO MY WEBSITE</font></blink></h1></body></html>", "r"), "index.html", "text/html"
     Net::HTTP.get "http://#{$site.website}/" #=> ...HELLO! WELCOME TO MY WEBSITE...
 
-Plus a handful of other miscellaneous things...
+Plus a handful of other miscellaneous things (see [RDoc](http://rubydoc.info/gems/s4))...
 
 Acknowledgements
 ----------------
