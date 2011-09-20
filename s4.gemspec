@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/benalavi/s4"
 
   s.files = Dir[
+    "CHANGELOG*",
     "README.md",
     "rakefile",
     "s4.gemspec",
