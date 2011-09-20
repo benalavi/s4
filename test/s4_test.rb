@@ -30,28 +30,28 @@ class S4Test < Test::Unit::TestCase
     `s3cmd del 's3://#{TestBucket}/*' 2>&1`
     `s3cmd rb 's3://#{TestBucket}' 2>&1`
   end
-  
+
   setup do
     FileUtils.rm_rf(output)
     FileUtils.mkdir_p(output)
   end
-  
+
   context "connecting to S3" do
     should "return connected bucket if can connect" do
       s4 = S4.connect
       assert s4
     end
-    
+
     should "bark when no URL is provided" do
       assert_raise(ArgumentError) { S4.connect(url: "") }
       assert_raise(ArgumentError) { S4.connect(url: nil) }
       assert_raise(URI::InvalidURIError) { S4.connect(url: "s3://foo:bar/baz") }
     end
-    
+
     should "raise error if cannot connect" do
       `s3cmd del 's3://#{NewBucket}/*' 2>&1`
       `s3cmd rb 's3://#{NewBucket}' 2>&1`
-      
+
       assert_raise(S4::Error) do
         S4.connect url: ENV["S3_URL"].sub(TestBucket, NewBucket)
       end
@@ -65,7 +65,7 @@ class S4Test < Test::Unit::TestCase
         S4.create url: ENV["S3_URL"].sub(TestBucket, "foo")
       end
     end
-  
+
     should "capture code of S3 error" do
       begin
         S4.create url: ENV["S3_URL"].sub(TestBucket, "foo")
@@ -74,31 +74,31 @@ class S4Test < Test::Unit::TestCase
       end
     end
   end
-  
-  context "creating a bucket" do    
+
+  context "creating a bucket" do
     setup do
       `s3cmd del 's3://#{NewBucket}/*' 2>&1`
       `s3cmd rb 's3://#{NewBucket}' 2>&1`
     end
-    
+
     should "create a bucket" do
       assert_equal "ERROR: Bucket '#{NewBucket}' does not exist", `s3cmd ls 's3://#{NewBucket}' 2>&1`.chomp
-      
+
       S4.create url: ENV["S3_URL"].sub(TestBucket, NewBucket)
-      
+
       assert_equal "", `s3cmd ls 's3://#{NewBucket}' 2>&1`.chomp
     end
-    
+
     should "create bucket with public-read ACL" do
       # TODO...
     end
-    
+
     should "raise if bucket creation failed" do
       assert_raise(S4::Error) do
         S4.create url: ENV["S3_URL"].sub(TestBucket, "foo")
       end
     end
-    
+
     should "raise if given invalid ACL" do
       begin
         S4.create url: ENV["S3_URL"], acl: "foo"
@@ -107,27 +107,27 @@ class S4Test < Test::Unit::TestCase
       end
     end
   end
-  
+
   context "making a website" do
     setup do
       delete_test_bucket
     end
-    
+
     should "make bucket a website" do
       s4 = S4.create
-      
+
       begin
         open("http://#{s4.website}/")
       rescue OpenURI::HTTPError => e
         assert_match /NoSuchWebsiteConfiguration/, e.io.read
       end
-      
+
       s4.put(StringIO.new("<!DOCTYPE html><html><head><title>Robot Page</title></head><body><h1>Robots!</h1></body></html>", "r"), "index.html", "text/html")
       s4.put(StringIO.new("<!DOCTYPE html><html><head><title>404!</title></head><body><h1>Oh No 404!!!</h1></body></html>", "r"), "404.html", "text/html")
       s4.website!
-      
+
       assert_match /Robots!/, open("http://#{s4.website}/").read
-      
+
       begin
         open("http://#{s4.website}/foo.html")
       rescue OpenURI::HTTPError => e
@@ -136,49 +136,49 @@ class S4Test < Test::Unit::TestCase
       end
     end
   end
-  
+
   context "setting policy on a bucket" do
     setup do
       delete_test_bucket
       @s4 = S4.create
     end
-    
+
     should "make all objects public by policy" do
       @s4.upload(fixture("foo.txt"))
-      
+
       begin
         open("http://s3.amazonaws.com/#{TestBucket}/foo.txt")
       rescue OpenURI::HTTPError => e
         assert_match /403 Forbidden/, e.message
       end
-      
+
       @s4.policy = :public_read
-      
+
       assert_equal "abc123", open("http://s3.amazonaws.com/#{TestBucket}/foo.txt").read
     end
   end
-  
+
   context "uploading to bucket" do
     setup do
       delete_test_bucket
       @s4 = S4.create
       @s4.policy = :public_read
     end
-    
+
     should "upload foo.txt" do
       @s4.upload(fixture("foo.txt"))
-      
+
       foo = open("http://s3.amazonaws.com/#{TestBucket}/foo.txt")
-      
+
       assert_equal "abc123", foo.read
-      assert_equal "text/plain", foo.content_type      
+      assert_equal "text/plain", foo.content_type
     end
-    
+
     should "use given content_type" do
       @s4.put StringIO.new("abcdef", "r"), "bar.txt", "text/foobar"
       assert_equal "text/foobar", open("http://s3.amazonaws.com/#{TestBucket}/bar.txt").content_type
     end
-    
+
     should "upload to a path" do
       @s4.put StringIO.new("zoinks!", "r"), "foo/bar.txt", "text/plain"
       assert_equal "zoinks!", open("http://s3.amazonaws.com/#{TestBucket}/foo/bar.txt").read
@@ -190,12 +190,12 @@ class S4Test < Test::Unit::TestCase
       assert_equal "zoinks!", open(url).read
     end
   end
-  
+
   context "when connected" do
     setup do
       @s4 = S4.connect
     end
-        
+
     should "download foo.txt" do
       `s3cmd put #{fixture("foo.txt")} s3://#{@s4.bucket}/foo.txt`
       @s4.download("foo.txt", output("foo.txt"))
@@ -209,7 +209,7 @@ class S4Test < Test::Unit::TestCase
 
       assert !File.exists?(output("foo.txt"))
     end
-    
+
     should "return false when downloading non-existent files" do
       `s3cmd del 's3://#{@s4.bucket}/foo.txt'`
       assert_equal nil, @s4.download("foo.txt", output("foo.txt"))
@@ -234,7 +234,7 @@ class S4Test < Test::Unit::TestCase
     should "return list of items in bucket" do
       `s3cmd del 's3://#{@s4.bucket}/*'`
       `s3cmd del 's3://#{@s4.bucket}/abc/*'`
-      
+
       `s3cmd put #{fixture("foo.txt")} s3://#{@s4.bucket}/foo.txt`
       `s3cmd put #{fixture("foo.txt")} s3://#{@s4.bucket}/bar.txt`
       `s3cmd put #{fixture("foo.txt")} s3://#{@s4.bucket}/baz.txt`

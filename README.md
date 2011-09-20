@@ -11,16 +11,16 @@ Usage
 -----
 
     $assets = S4.connect url: "s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/assets.mysite.com"
-    
+
     $assets.upload "puppy.jpg", "animals/puppy.jpg"
     $assets.upload "penguin.jpg", "animals/penguin.jpg"
     $assets.list "animals/" #=> [ "animals/puppy.jpg", "animals/penguin.jpg" ]
-    
+
     $assets.download "animals/penguin.jpg", "penguin.jpg"
-    
+
     $assets.delete "animals/penguin.jpg"
     $assets.list "animals/" #=> [ "animals/puppy.jpg" ]
-    
+
     $assets.upload "ufo.jpg"
     $assets.list #=> [ "ufo.jpg", "animals/puppy.jpg" ]
 
@@ -29,16 +29,16 @@ Without a URL given, S4 will attempt to read one from ENV["S3_URL"]:
     $ export S3_URL="s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/assets.mysite.com"
     ...
     $assets = S4.connect
-    
+
 Handy snippet for multiple buckets w/ the same account:
 
     $ export S3_URL="s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/%s"
     ...
     $assets = S4.connect url: ENV["S3_URL"] % "assets"
-    $videos = S4.connect url: ENV["S3_URL"] % "videos"  
+    $videos = S4.connect url: ENV["S3_URL"] % "videos"
 
 Low-level access:
-    
+
     $assets.get "animals/gigantic_penguin_movie.mp4" do |response|
       File.open "gigantic_penguin_movie.mp4", "wb" do |io|
         response.read_body do |chunk|
@@ -47,13 +47,13 @@ Low-level access:
         end
       end
     end
-    
+
     $assets.put StringIO.new("My Novel -- By Ben Alavi...", "r"), "novel.txt", "text/plain"
 
 Create a bucket (returns the bucket if it already exists and is accessible):
 
     $musics = S4.create url: "s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/musics.mysite.com"
-    
+
 Make a bucket into a static website:
 
     $site = S4.connect url: "s3://0PN5J17HBGZHT7JJ3X82:k3nL7gH3+PadhTEVn5EXAMPLE@s3.amazonaws.com/website.mysite.com"
