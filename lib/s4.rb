@@ -181,7 +181,11 @@ class S4
     req.add_field "Content-Length", io.size
     req.body_stream = io
 
-    request uri("/#{name}"), req
+    target_uri = uri("/#{name}")
+
+    request(target_uri, req)
+
+    target_uri.to_s
   end
 
   # List bucket contents.

@@ -1,0 +1,3 @@
+0.0.4 - unreleased
+
+* S4#put now returns the URL to the uploaded file.

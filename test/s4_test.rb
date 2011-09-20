@@ -1,5 +1,5 @@
 raise "You need to have ENV[\"S3_URL\"] set for the tests to connect to your testing bucket on S3. Format is: 's3://<access key id>:<secret access key>@s3.amazonaws.com/<s4 test bucket>'." unless ENV["S3_URL"]
-raise "You need to have ENV[\"S4_NEW_BUCKET\"], which will be dynamically created and destroyed for testing bucket creation. i.e.: 's4-test-bucketthatdoesntexist'." unless ENV["S3_URL"]
+raise "You need to have ENV[\"S4_NEW_BUCKET\"], which will be dynamically created and destroyed for testing bucket creation. i.e.: 's4-test-bucketthatdoesntexist'." unless ENV["S3_NEW_BUCKET"]
 
 require "contest"
 require "timecop"
@@ -182,6 +182,12 @@ class S4Test < Test::Unit::TestCase
     should "upload to a path" do
       @s4.put StringIO.new("zoinks!", "r"), "foo/bar.txt", "text/plain"
       assert_equal "zoinks!", open("http://s3.amazonaws.com/#{TestBucket}/foo/bar.txt").read
+    end
+
+    should "return the URL to the uploaded file" do
+      url = @s4.put StringIO.new("zoinks!", "r"), "foo/bar.txt", "text/plain"
+      assert_kind_of URI::HTTP, URI.parse(url)
+      assert_equal "zoinks!", open(url).read
     end
   end
   
