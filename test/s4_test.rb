@@ -1,5 +1,5 @@
 raise "You need to have ENV[\"S3_URL\"] set for the tests to connect to your testing bucket on S3. Format is: 's3://<access key id>:<secret access key>@s3.amazonaws.com/<s4 test bucket>'." unless ENV["S3_URL"]
-raise "You need to have ENV[\"S4_NEW_BUCKET\"], which will be dynamically created and destroyed for testing bucket creation. i.e.: 's4-test-bucketthatdoesntexist'." unless ENV["S3_NEW_BUCKET"]
+raise "You need to have ENV[\"S4_NEW_BUCKET\"], which will be dynamically created and destroyed for testing bucket creation. i.e.: 's4-test-bucketthatdoesntexist'." unless ENV["S4_NEW_BUCKET"]
 
 require "contest"
 require "timecop"
