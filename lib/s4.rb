@@ -6,7 +6,7 @@ require "json"
 
 # Simpler AWS S3 library
 class S4
-  VERSION = "0.0.4"
+  VERSION = "0.0.5"
 
   # sub-resource names which may appear in the query string and also must be
   # signed against.
