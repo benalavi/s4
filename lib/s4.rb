@@ -3,6 +3,7 @@ require "rexml/document"
 require "base64"
 require "time"
 require "json"
+require "shellwords"
 
 # Simpler AWS S3 library
 class S4
@@ -175,7 +176,7 @@ class S4
     uri = uri(name)
     req = Net::HTTP::Put.new(uri.request_uri)
 
-    content_type = `file -ib '#{io.path}'`.chomp if !content_type && io.respond_to?(:path)
+    content_type = `file -ib #{Shellwords.escape(io.path)}`.chomp if !content_type && io.respond_to?(:path)
 
     req.add_field "Content-Type", content_type
     req.add_field "Content-Length", io.size
