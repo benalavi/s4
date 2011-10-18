@@ -184,6 +184,15 @@ class S4Test < Test::Unit::TestCase
       assert_equal "text/plain", foo.content_type
     end
 
+    should "upload foo's bar+baz.txt" do
+      @s4.upload(fixture("foo's bar+baz.txt"))
+
+      foo = open("http://s3.amazonaws.com/#{TestBucket}/foo's%20bar+baz.txt")
+
+      assert_equal "abc123", foo.read.chomp
+      assert_equal "text/plain", foo.content_type
+    end
+
     should "use given content_type" do
       @s4.put StringIO.new("abcdef", "r"), "bar.txt", "text/foobar"
       assert_equal "text/foobar", open("http://s3.amazonaws.com/#{TestBucket}/bar.txt").content_type
